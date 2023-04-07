@@ -84,17 +84,19 @@ const App: React.FC = () => {
         <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
       </Sider>
       <Layout className="site-layout">
-        <Header style={{ padding: 0, background: colorBgContainer }} />
-        <Content style={{ margin: '0 16px' }}>
-          <Breadcrumb style={{ margin: '16px 0' }}>
+        <Header style={{ padding: 0, background: colorBgContainer }}>
+        <Breadcrumb style={{ margin: '16px  0',padding:'0 16px' }}>
             <Breadcrumb.Item>User</Breadcrumb.Item>
             <Breadcrumb.Item>Bill</Breadcrumb.Item>
           </Breadcrumb>
-          <div style={{ padding: 24, minHeight: 360, background: colorBgContainer }}>
+        </Header>
+        <Content style={{ margin: '16px 16px 0 ' }}>
+          
+          {/* <div style={{ padding: 24, minHeight: 360, background: colorBgContainer }}>
             Bill is a cat.
-          </div>
+          </div> */}
         </Content>
-        <Footer style={{ textAlign: 'center' }}>Ant Design ©2023 Created by Ant UED</Footer>
+        <Footer style={{ textAlign: 'center',padding:0,lineHeight:'48px' }}>Ant Design ©2023 Created by Ant UED</Footer>
       </Layout>
     </Layout>
   );
