@@ -81,12 +81,20 @@ const App: React.FC = () => {
 
   const goNewPage = useNavigate();
   const handleOpenChange = (keys: string[]) => {
-    
+
     setOpenkeys([keys[keys.length - 1]])
     console.log(openkeys)
   }
 
-  
+  // React.useEffect(() => {
+  //   console.log("这是模拟componentDidMount钩子函数")
+  //   getCode()
+  //   return () => {//return出来的函数本来就是更新前，销毁前执行的函数，现在不监听任何状态，所以只在销毁前执行
+  //     console.log("这是模拟componentWillUnmount钩子函数")
+  //   }
+  // },[])//第二个参数一定是一个空数组，因为如果不写会默认监听所有状态，这样写就不会监听任何状态，只在初始化时执行一次。
+
+
 
 
   const {
@@ -100,16 +108,19 @@ const App: React.FC = () => {
 
   }
 
-  
 
-axios.get('/api/code')
-  .then(response => {
-    console.log(response.data);
-  })
-  .catch(error => {
-    console.error(error);
-  });
-  
+
+  function getCode() {
+    axios.get('/api/code')
+      .then(response => {
+        console.log('11111', response.data);
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  }
+
+
 
 
   return (

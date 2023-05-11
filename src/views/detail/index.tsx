@@ -17,15 +17,15 @@ interface Props {
     
 }
 
-function getCode(){
-    axios.get('/api/code')
-        .then(response => {
-            console.log(response.data);
-        })
-        .catch(error => {
-            console.error(error);
-        });
-}
+// function getCode(){
+//     axios.get('/api/code')
+//         .then(response => {
+//             console.log(response.data);
+//         })
+//         .catch(error => {
+//             console.error(error);
+//         });
+// }
 const Detail: FunctionComponent<Props> = () => {
     
     return ( <div className="about">
@@ -34,3 +34,5 @@ const Detail: FunctionComponent<Props> = () => {
 }
  
 export default Detail;
+
+
