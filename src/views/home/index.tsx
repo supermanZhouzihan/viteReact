@@ -11,8 +11,6 @@
 
 // import { FunctionComponent } from "react";
 
-
-
 // interface Props {
 
 // }
@@ -24,11 +22,6 @@
 // }
 
 // export default Home;
-
-
-
-
-
 
 import React, { useState } from 'react';
 import {

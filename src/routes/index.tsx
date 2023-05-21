@@ -25,13 +25,16 @@
 // import Home from "@/views/home";
 import React, { lazy } from "react";
 import { Navigate } from "react-router-dom";
+import Login from "@/views/login"
 
 const About = lazy(() => import("@/views/about"))
 const Home = lazy(() => import("@/views/home"))
 const Detail=lazy(() => import("@/views/detail"))
 const Help =lazy(() => import("@/views/help"))
 const Intro=lazy(() => import("@/views/intro"))
-const Login=lazy(()=>import("@/views/login"))
+// const Login=lazy(()=>import("@/views/login"))
+
+// const navigate = useNavigate();
 
 const withLoadingComponent = (comp: JSX.Element) => (
     <React.Suspense fallback={<div>loading...</div>}>
@@ -43,11 +46,6 @@ const baseRouter = [
         path: "/",
         element: <Navigate to={'/about'}></Navigate>
     },
-    {
-        path: "/login",
-        element: withLoadingComponent(<Login></Login>)
-    },
-
     {
         path: "/",
         element: withLoadingComponent(<Home />),
@@ -74,6 +72,10 @@ const baseRouter = [
             }
 
         ]
+    },
+    {
+        path: "/login",
+        element: <Login ></Login>
     },
     {
         path:"*",
