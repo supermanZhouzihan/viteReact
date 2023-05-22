@@ -4,7 +4,7 @@ import re from './requestBase'
 const con = re(process.env.VUE_APP_BASE_API_PURCHASE);
 
 // 通用下载方法
-export function download(url, params, filename) {
+export function download(url:string, params:any, filename:string) {
   return con.download(url, params, filename)
 }
 

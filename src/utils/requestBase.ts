@@ -5,7 +5,9 @@ import axios from 'axios'
 //   Message,
 //   Loading
 // } from 'element-ui'
-import { Spin ,message } from 'antd';
+import React from 'react';
+import { Spin ,message,Modal } from 'antd';
+import { ExclamationCircleFilled } from '@ant-design/icons';
 // import store from '@/store'
 import {
   getToken
@@ -16,6 +18,8 @@ import {
 } from "@/utils/ruoyi";
 
 const [messageApi, contextHolder] = message.useMessage();
+const { confirm } = Modal;
+
 
 
 /**
@@ -23,8 +27,8 @@ const [messageApi, contextHolder] = message.useMessage();
  * @param process.env env 环境变量配置
  * @return 
  */
-let loading
-export default function (env) {
+let loading:boolean
+export default function (env:any) {
   axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
   // 创建axios实例
   var service = axios.create({
@@ -92,8 +96,9 @@ export default function (env) {
       /////////////////////// http状态码判断 ///////////////////////////
       const httpStatus = res.status;
       if (httpStatus != 200) {
-        Notification.error({
-          title: res.statusText
+        messageApi.open({
+          type: 'error',
+          content: res.statusText,
         });
         return Promise.reject(new Error(res.statusText));
       }
@@ -110,25 +115,43 @@ export default function (env) {
       }
       // 未登录
       if (code == 2) {
-        MessageBox.confirm('登录状态已过期，您可以继续留在该页面，或者重新登录', '系统提示', {
-          confirmButtonText: '重新登录',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          // store.dispatch('LogOut').then(() => {
-          //   location.href = '/index';
-          // })
-        }).catch(() => {});
+        // MessageBox.confirm('登录状态已过期，您可以继续留在该页面，或者重新登录', '系统提示', {
+        //   confirmButtonText: '重新登录',
+        //   cancelButtonText: '取消',
+        //   type: 'warning'
+        // }).then(() => {
+        //   // store.dispatch('LogOut').then(() => {
+        //   //   location.href = '/index';
+        //   // })
+        // }).catch(() => {});
+
+        // confirm({
+        //   title: '系统提示',
+        //   icon: <ExclamationCircleFilled />,
+        //   content: '登录状态已过期，您可以继续留在该页面，或者重新登录',
+        //   onOk() {
+        //     store.dispatch('LogOut').then(() => {
+        //      location.href = '/index';
+        //    })
+        //   },
+        //   onCancel() {
+        //     console.log('Cancel');
+        //   },
+        // });
+
+
+
         tryHideFullScreenLoading();
         return Promise.reject(new Error(msg));
       } else if (code == 200) { //控制下载文件
         tryHideFullScreenLoading();
         if (res.data.type == 'application/json') {
            getResponseError(res.data).then((response) => {
-            Message({
-              message: response,
-              type: 'error'
-            })
+            messageApi.open({
+              type: 'error',
+              content:response
+            });
+            
           });
           return Promise.reject(new Error(response))
         }
@@ -137,18 +160,18 @@ export default function (env) {
       // 通用的警告
       else if (code == 201) {
         tryHideFullScreenLoading();
-        Message({
-          message: msg,
-          type: 'warning'
-        })
+        messageApi.open({
+          type: 'warning',
+          content:msg,
+        });
         return Promise.reject(new Error(msg))
       }
       tryHideFullScreenLoading();
       // 其它异常
       // Notification.error({ title: msg });
-      Message({
-        message: msg,
-        type: 'error'
+      messageApi.open({
+        type: 'error',
+        content:msg
       });
       return Promise.reject(new Error(msg));
     },
@@ -164,11 +187,15 @@ export default function (env) {
         message = "系统接口" + message.substr(message.length - 3) + "异常";
       }
       tryHideFullScreenLoading();
-      Message({
-        message: message,
+      // Message({
+      //   message: message,
+      //   type: 'error',
+      //   duration: 5 * 1000
+      // })
+      messageApi.open({
         type: 'error',
-        duration: 5 * 1000
-      })
+        content:message
+      });
       return Promise.reject(error)
     });
 
@@ -179,7 +206,7 @@ export default function (env) {
    * @param {*} filename 
    * @return
    */
-  function download(url, params, filename) {
+  function download(url:string, params:any, filename:string) {
     return service.post(url, params, {
       // transformRequest: [(params) => {
       //   return tansParams(params)
@@ -188,7 +215,7 @@ export default function (env) {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       responseType: 'blob'
-    }).then((data) => {
+    }).then((data:any) => {
       const content = data
       const blob = new Blob([content])
       if ('download' in document.createElement('a')) {
@@ -211,13 +238,14 @@ export default function (env) {
 
   //element loading
   function startLoading() { //使用Element loading-start 方法
-    loading = Loading.service({
-      lock: false,
-      text: '加载中.....',
-      background: 'rgba(0, 0, 0, 0.7)',
-      spinner: 'el-icon-loading'
-      // target:'.app-main'
-    })
+    // loading = Loading.service({
+    //   lock: false,
+    //   text: '加载中.....',
+    //   background: 'rgba(0, 0, 0, 0.7)',
+    //   spinner: 'el-icon-loading'
+    //   // target:'.app-main'
+    // })
+    return <Spin />
   }
 
   function endLoading() { //使用Element loading-close 方法
@@ -245,7 +273,7 @@ export default function (env) {
   }
 
   //文件流下载时异常处理，获取错误的msg
-  function getResponseError(data) {
+  function getResponseError(data:any) {
     const fileReader = new FileReader();
     fileReader.readAsText(data);
     return new Promise((resolve, reject) => {

@@ -28,17 +28,6 @@ const Login: FunctionComponent<Props> = (props) => {
   const [rememberMe,setRrememberMe]=useState(false);
   const [code,setCode]=useState("");
   const [uuid,setUuid]=useState("");
-  // let state = {
-  //   codeUrl: "",
-  //   captchaOnOff: "",
-  //   loginForm: {
-  //     username: "admin",
-  //     password: "admin123",
-  //     rememberMe: false,
-  //     code: "",
-  //     uuid: ""
-  //   }
-  // };
   const goNewPage = useNavigate();
 
   const onFinish = (values: { username: string, password: string, code: string | number, uuid: string }) => {
@@ -52,25 +41,12 @@ const Login: FunctionComponent<Props> = (props) => {
     console.log('Failed:', errorInfo);
   };
   const getCode = () => {
-    console.log("执行了getcode")
     axios.get('/api/code')
       .then((response: { data: { captchaOnOff: boolean, uuid: string, img: string } }) => {
         let c = response.data;
-        // this.setState({
-        // })
-        // this.state. = 
-        // let obj = {
-        //   username: username,
-        //   password: password,
-        //   rememberMe: rememberMe,
-        //   code: code,
-        //   uuid: uuid,
-        //   captchaOnOff:c.captchaOnOff === undefined ? true : c.captchaOnOff
-        // }
             setUuid(c.uuid);
             setCaptchaOnOff(c.captchaOnOff?true : c.captchaOnOff);
             setCodeUrl("data:image/gif;base64," + c.img);
-        console.log("进来了")
       })
       .catch(error => {
         console.error(error);
@@ -78,7 +54,6 @@ const Login: FunctionComponent<Props> = (props) => {
   }
 
   useEffect(()=>{
-    console.log("执行了useEffect")
     getCode();
   },[])
 
