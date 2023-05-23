@@ -1,13 +1,11 @@
 import axios from 'axios'
-// import {
-//   Notification,
-//   MessageBox,
-//   Message,
-//   Loading
-// } from 'element-ui'
+
 import React from 'react';
-import { Spin ,message,Modal } from 'antd';
+import { message,Modal } from 'antd';
 import { ExclamationCircleFilled } from '@ant-design/icons';
+import { showFullScreenLoading, tryHideFullScreenLoading } from "@/utils/serviceLoading";
+
+
 // import store from '@/store'
 import {
   getToken
@@ -22,12 +20,13 @@ const { confirm } = Modal;
 
 
 
+
 /**
  * 基于axios创建网络请求对象
  * @param process.env env 环境变量配置
  * @return 
  */
-let loading:boolean
+// let loading:boolean
 export default function (env:any) {
   axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
   // 创建axios实例
@@ -73,7 +72,7 @@ export default function (env:any) {
       config.params = {};
       config.url = url;
     }
-    showFullScreenLoading()
+    showFullScreenLoadingFunc()
     return config
   }, error => {
     Promise.reject(error)
@@ -110,7 +109,7 @@ export default function (env:any) {
       const msg = errorCode[code] || res.data.msg || errorCode['default']
       // 成功，无异常
       if (code == 0) {
-        tryHideFullScreenLoading();
+        tryHideFullScreenLoadingFunc();
         return res.data;
       }
       // 未登录
@@ -141,32 +140,31 @@ export default function (env:any) {
 
 
 
-        tryHideFullScreenLoading();
+        tryHideFullScreenLoadingFunc();
         return Promise.reject(new Error(msg));
       } else if (code == 200) { //控制下载文件
-        tryHideFullScreenLoading();
+        tryHideFullScreenLoadingFunc();
         if (res.data.type == 'application/json') {
-           getResponseError(res.data).then((response) => {
+           getResponseError(res.data).then((response:any) => {
             messageApi.open({
               type: 'error',
               content:response
             });
-            
           });
-          return Promise.reject(new Error(response))
+          // return Promise.reject(new Error(response))
         }
         return res;
       }
       // 通用的警告
       else if (code == 201) {
-        tryHideFullScreenLoading();
+        tryHideFullScreenLoadingFunc();
         messageApi.open({
           type: 'warning',
           content:msg,
         });
         return Promise.reject(new Error(msg))
       }
-      tryHideFullScreenLoading();
+      tryHideFullScreenLoadingFunc();
       // 其它异常
       // Notification.error({ title: msg });
       messageApi.open({
@@ -186,7 +184,7 @@ export default function (env:any) {
       } else if (message.includes("Request failed with status code")) {
         message = "系统接口" + message.substr(message.length - 3) + "异常";
       }
-      tryHideFullScreenLoading();
+      tryHideFullScreenLoadingFunc();
       // Message({
       //   message: message,
       //   type: 'error',
@@ -228,7 +226,7 @@ export default function (env:any) {
         URL.revokeObjectURL(elink.href)
         document.body.removeChild(elink)
       } else {
-        navigator.msSaveBlob(blob, filename)
+        window.navigator["msSaveBlob"](blob, filename)
       }
     }).catch((r) => {
       console.error(r)
@@ -236,33 +234,27 @@ export default function (env:any) {
   }
 
 
-  //element loading
-  function startLoading() { //使用Element loading-start 方法
-    // loading = Loading.service({
-    //   lock: false,
-    //   text: '加载中.....',
-    //   background: 'rgba(0, 0, 0, 0.7)',
-    //   spinner: 'el-icon-loading'
-    //   // target:'.app-main'
-    // })
-    return <Spin />
+  //loading
+  function startLoading() {
+    
+    showFullScreenLoading()
   }
 
-  function endLoading() { //使用Element loading-close 方法
-    loading.close()
+  function endLoading() {
+    tryHideFullScreenLoading()
   }
   //当前正在请求接口的个数
   let needLoadingRequestCount = 0;
 
   //显示loading
-  function showFullScreenLoading() {
+  function showFullScreenLoadingFunc() {
     if (needLoadingRequestCount === 0) {
       startLoading()
     }
     needLoadingRequestCount++
   }
   //隐藏loading
-  function tryHideFullScreenLoading() {
+  function tryHideFullScreenLoadingFunc() {
     if (needLoadingRequestCount <= 0) return
     needLoadingRequestCount--
     if (needLoadingRequestCount === 0) {
