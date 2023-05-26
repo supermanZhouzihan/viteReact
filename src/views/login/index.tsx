@@ -11,7 +11,7 @@
 import { FunctionComponent, useEffect,useState } from "react";
 import { Button, Checkbox, Form, Input } from 'antd';
 import axios from "axios";
-
+import {getCodeImg} from "@/api/index"
 import { useNavigate } from 'react-router-dom';
 import './index.scss';
 // export default About;
@@ -41,8 +41,8 @@ const Login: FunctionComponent<Props> = (props) => {
     console.log('Failed:', errorInfo);
   };
   const getCode = () => {
-    axios.get('/api/code')
-      .then((response: { data: { captchaOnOff: boolean, uuid: string, img: string } }) => {
+    // axios.get('/api/code')
+    getCodeImg().then((response: { data: { captchaOnOff: boolean, uuid: string, img: string } }) => {
         let c = response.data;
             setUuid(c.uuid);
             setCaptchaOnOff(c.captchaOnOff?true : c.captchaOnOff);

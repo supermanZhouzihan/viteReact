@@ -1,12 +1,11 @@
 import axios from 'axios'
-
-import React from 'react';
-import { message,Modal } from 'antd';
-import { ExclamationCircleFilled } from '@ant-design/icons';
-import { showFullScreenLoading, tryHideFullScreenLoading } from "@/utils/serviceLoading";
-
-
-// import store from '@/store'
+import {
+  Notification,
+  MessageBox,
+  Message,
+  Loading
+} from 'element-ui'
+import store from '@/store'
 import {
   getToken
 } from '@/utils/auth'
@@ -15,26 +14,20 @@ import {
   tansParams,
 } from "@/utils/ruoyi";
 
-// const [messageApi] = message.useMessage();
-const { confirm } = Modal;
-
-
-
-
 /**
  * 基于axios创建网络请求对象
  * @param process.env env 环境变量配置
  * @return 
  */
-// let loading:boolean
-export default function (env:any) {
+let loading
+export default function (env) {
   axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
   // 创建axios实例
   var service = axios.create({
     // axios中请求配置有baseURL选项，表示请求URL公共部分
     baseURL: env,
     // 超时
-    timeout: 20000
+    timeout: 30000
   })
 
   /**
@@ -45,7 +38,7 @@ export default function (env:any) {
     for (let key in config.data) {
       // 排除以下key 为空的时候删除key
       if (config.data[key] === '' || config.data[key] === null || config.data[key] === undefined) {
-        if (key !== 'logo' && key !== 'image' && key !== 'img' && key !== 'belongCompany' && key !== 'belongEnterprise' && key !== 'deliveryTime' && key !== 'location_no' && key !== 'subsidiary_unit' && key !== 'attr1' && key !== 'intro'&&key!=='forbidRegionsType'&&key!=='mailType'&&key!=='noticeEndTime'&&key!=='noticeStartTime') {
+        if (key !== 'logo' && key !== 'image' && key !== 'img' && key !== 'belongCompany' && key !== 'belongEnterprise' && key !== 'deliveryTime' && key !== 'location_no' && key !== 'subsidiary_unit' && key !== 'attr1' && key !== 'intro' && key !== 'forbidRegionsType' && key !== 'mailType' && key !== 'noticeEndTime' && key !== 'noticeStartTime'&&key!=='noticeAdminWhenCustReg') {
           delete config.data[key]
         }
       }
@@ -62,7 +55,7 @@ export default function (env:any) {
       for (let key in config.params) {
         // 排除以下key 为空的时候删除key
         if (config.params[key] === '' || config.params[key] === null || config.params[key] === undefined) {
-          if (key !== 'logo' && key !== 'image' && key !== 'img' && key !== 'belongCompany' && key !== 'belongEnterprise' && key !== "deliveryTime" && key !== "location_no" && key !== 'subsidiary_unit' && key !== 'attr1' && key !== 'intro'&&key!=='forbidRegionsType'&&key!=='mailType'&&key!=='noticeEndTime'&&key!=='noticeStartTime') {
+          if (key !== 'logo' && key !== 'image' && key !== 'img' && key !== 'belongCompany' && key !== 'belongEnterprise' && key !== "deliveryTime" && key !== "location_no" && key !== 'subsidiary_unit' && key !== 'attr1' && key !== 'intro' && key !== 'forbidRegionsType' && key !== 'mailType' && key !== 'noticeEndTime' && key !== 'noticeStartTime'&&key!=='noticeAdminWhenCustReg') {
             delete config.params[key]
           }
         }
@@ -72,7 +65,7 @@ export default function (env:any) {
       config.params = {};
       config.url = url;
     }
-    showFullScreenLoadingFunc()
+    showFullScreenLoading()
     return config
   }, error => {
     Promise.reject(error)
@@ -95,7 +88,9 @@ export default function (env:any) {
       /////////////////////// http状态码判断 ///////////////////////////
       const httpStatus = res.status;
       if (httpStatus != 200) {
-        message.error(res.statusText);
+        Notification.error({
+          title: res.statusText
+        });
         return Promise.reject(new Error(res.statusText));
       }
 
@@ -105,80 +100,71 @@ export default function (env:any) {
       // 获取错误信息
       const msg = errorCode[code] || res.data.msg || errorCode['default']
       // 成功，无异常
-      if (code == 0) {
-        tryHideFullScreenLoadingFunc();
+      if (code == 0 || code == -999) {//code:-999用于弹窗显示异常 区别于其他正常接口
+        tryHideFullScreenLoading();
         return res.data;
       }
       // 未登录
       if (code == 2) {
-        // MessageBox.confirm('登录状态已过期，您可以继续留在该页面，或者重新登录', '系统提示', {
-        //   confirmButtonText: '重新登录',
-        //   cancelButtonText: '取消',
-        //   type: 'warning'
-        // }).then(() => {
-        //   // store.dispatch('LogOut').then(() => {
-        //   //   location.href = '/index';
-        //   // })
-        // }).catch(() => {});
-
-        // confirm({
-        //   title: '系统提示',
-        //   icon: <ExclamationCircleFilled />,
-        //   content: '登录状态已过期，您可以继续留在该页面，或者重新登录',
-        //   onOk() {
-        //     store.dispatch('LogOut').then(() => {
-        //      location.href = '/index';
-        //    })
-        //   },
-        //   onCancel() {
-        //     console.log('Cancel');
-        //   },
-        // });
-
-
-
-        tryHideFullScreenLoadingFunc();
+        MessageBox.confirm('登录状态已过期，您可以继续留在该页面，或者重新登录', '系统提示', {
+          confirmButtonText: '重新登录',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          store.dispatch('LogOut').then(() => {
+            location.href = '/index';
+          })
+        }).catch(() => {});
+        tryHideFullScreenLoading();
         return Promise.reject(new Error(msg));
       } else if (code == 200) { //控制下载文件
-        tryHideFullScreenLoadingFunc();
+        tryHideFullScreenLoading();
         if (res.data.type == 'application/json') {
-           getResponseError(res.data).then((response:any) => {
-            message.error(response);
+          getResponseError(res.data).then((response) => {
+            Message({
+              message: response,
+              type: 'error'
+            })
           });
-          // return Promise.reject(new Error(response))
+          return Promise.reject(new Error(response))
         }
         return res;
       }
       // 通用的警告
       else if (code == 201) {
-        tryHideFullScreenLoadingFunc();
-        message.error(msg);
+        tryHideFullScreenLoading();
+        Message({
+          message: msg,
+          type: 'warning'
+        })
         return Promise.reject(new Error(msg))
       }
-      tryHideFullScreenLoadingFunc();
+      tryHideFullScreenLoading();
       // 其它异常
       // Notification.error({ title: msg });
-      message.error(msg);
+      Message({
+        message: msg,
+        type: 'error'
+      });
       return Promise.reject(new Error(msg));
     },
     error => {
       let {
-        msg
+        message
       } = error;
-      if (msg == "Network Error") {
-        msg = "后端接口连接异常";
-      } else if (msg.includes("timeout")) {
-        msg = "系统接口请求超时";
-      } else if (msg.includes("Request failed with status code")) {
-        msg = "系统接口" + msg.substr(msg.length - 3) + "异常";
+      if (message == "Network Error") {
+        message = "后端接口连接异常";
+      } else if (message.includes("timeout")) {
+        message = "系统接口请求超时";
+      } else if (message.includes("Request failed with status code")) {
+        message = "系统接口" + message.substr(message.length - 3) + "异常";
       }
-      tryHideFullScreenLoadingFunc();
-      // Message({
-      //   message: message,
-      //   type: 'error',
-      //   duration: 5 * 1000
-      // })
-      message.error(msg);
+      tryHideFullScreenLoading();
+      Message({
+        message: message,
+        type: 'error',
+        duration: 5 * 1000
+      })
       return Promise.reject(error)
     });
 
@@ -189,7 +175,7 @@ export default function (env:any) {
    * @param {*} filename 
    * @return
    */
-  function download(url:string, params:any, filename:string) {
+  function download(url, params, filename) {
     return service.post(url, params, {
       // transformRequest: [(params) => {
       //   return tansParams(params)
@@ -198,7 +184,7 @@ export default function (env:any) {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       responseType: 'blob'
-    }).then((data:any) => {
+    }).then((data) => {
       const content = data
       const blob = new Blob([content])
       if ('download' in document.createElement('a')) {
@@ -211,7 +197,7 @@ export default function (env:any) {
         URL.revokeObjectURL(elink.href)
         document.body.removeChild(elink)
       } else {
-        window.navigator["msSaveBlob"](blob, filename)
+        navigator.msSaveBlob(blob, filename)
       }
     }).catch((r) => {
       console.error(r)
@@ -219,27 +205,32 @@ export default function (env:any) {
   }
 
 
-  //loading
-  function startLoading() {
-    
-    showFullScreenLoading()
+  //element loading
+  function startLoading() { //使用Element loading-start 方法
+    loading = Loading.service({
+      lock: false,
+      text: '加载中.....',
+      background: 'rgba(0, 0, 0, 0.7)',
+      spinner: 'el-icon-loading'
+      // target:'.app-main'
+    })
   }
 
-  function endLoading() {
-    tryHideFullScreenLoading()
+  function endLoading() { //使用Element loading-close 方法
+    loading.close()
   }
   //当前正在请求接口的个数
   let needLoadingRequestCount = 0;
 
   //显示loading
-  function showFullScreenLoadingFunc() {
+  function showFullScreenLoading() {
     if (needLoadingRequestCount === 0) {
       startLoading()
     }
     needLoadingRequestCount++
   }
   //隐藏loading
-  function tryHideFullScreenLoadingFunc() {
+  function tryHideFullScreenLoading() {
     if (needLoadingRequestCount <= 0) return
     needLoadingRequestCount--
     if (needLoadingRequestCount === 0) {
@@ -250,14 +241,13 @@ export default function (env:any) {
   }
 
   //文件流下载时异常处理，获取错误的msg
-  function getResponseError(data:any) {
-    
-    const fileReader:FileReader = new FileReader();
+  function getResponseError(data) {
+    const fileReader = new FileReader();
     fileReader.readAsText(data);
     return new Promise((resolve, reject) => {
       fileReader.onload = function () {
         try {
-          const jsonData = JSON.parse(fileReader["result"] as string); // 说明是普通对象数据，后台转换失败
+          const jsonData = JSON.parse(fileReader.result); // 说明是普通对象数据，后台转换失败
           resolve(jsonData.msg)
         } catch (err) {
           // 解析成对象失败，说明是正常的文件流

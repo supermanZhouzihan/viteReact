@@ -9,6 +9,10 @@ export function getCode() {
     //     .catch(error => {
     //         console.error(error);
     //     });
+    return request({
+      url: '/code',
+      method: 'get'
+    })
 }
 
 export function getCodeImg() {
