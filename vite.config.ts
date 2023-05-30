@@ -73,12 +73,34 @@ export default defineConfig((mode: ConfigEnv): UserConfig => {
 			cors: true,
 			// https: false,
 			// 代理跨域（mock 不需要配置，这里只是个事列）
+			// proxy: {
+			// 	'/api': {
+			// 		target: 'http://47.108.149.12:8082',
+			// 		changeOrigin: true,
+			// 		rewrite: (path) => path.replace(/^\/api/, '')
+			// 	},
+			// }
 			proxy: {
+				'/dev-api': {
+					// target: `http://localhost:8080`,
+					// target: 'http://192.168.1.133:8080',
+					// target:'http://192.168.1.232:8080',
+					// target:'http://192.168.1.161:8080',
+					// target:'http://192.168.1.139:8080',
+
+					// target: 'http://192.168.1.198:8082', //测试环境
+					target: 'http://47.108.149.12:8082',
+					// target:'https://pro.scm.tysp.com/_javaMain',//生产环境
+					changeOrigin: true,
+					rewrite: (path) => path.replace(/^\/dev-api/, '')
+				},
 				'/api': {
-          target: 'http://47.108.149.12:8082',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, '')
-        }
+					// target: 'http://192.168.1.198:8009', //测试环境
+					target: 'http://47.108.149.12:8009',
+					// target:'https://pro.scm.tysp.com',//生产环境
+					changeOrigin: true,
+					rewrite: (path) => path.replace(/^\/api/, '')
+				},
 			}
 		},
 		// plugins
@@ -102,13 +124,13 @@ export default defineConfig((mode: ConfigEnv): UserConfig => {
 			viteEnv.VITE_REPORT && visualizer(),
 			// * gzip compress
 			viteEnv.VITE_BUILD_GZIP &&
-				viteCompression({
-					verbose: true,
-					disable: false,
-					threshold: 10240,
-					algorithm: "gzip",
-					ext: ".gz"
-				})
+			viteCompression({
+				verbose: true,
+				disable: false,
+				threshold: 10240,
+				algorithm: "gzip",
+				ext: ".gz"
+			})
 		],
 		esbuild: {
 			pure: viteEnv.VITE_DROP_CONSOLE ? ["console.log", "debugger"] : []

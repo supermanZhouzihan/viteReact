@@ -1,38 +1,32 @@
 
 
-// function About:any = () => {
-//     return ( 
-//         <div className="about">
-//         这是about组件
-//         </div>
-//      );
-// }
-
-import { FunctionComponent, useEffect,useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import { Button, Checkbox, Form, Input } from 'antd';
-import axios from "axios";
-import {getCodeImg} from "@/api/index"
+import { getCodeImg, login } from "@/api/index"
 import { useNavigate } from 'react-router-dom';
+import Cookies from "js-cookie";
 import './index.scss';
-// export default About;
-
 interface Props {
-
+  
+}
+interface ExpectedResponse {
+  captchaOnOff: boolean;
+  uuid: string;
+  img: string;
 }
 
 const Login: FunctionComponent<Props> = (props) => {
-  const [codeUrl,setCodeUrl]=useState("");
-  const [captchaOnOff,setCaptchaOnOff]=useState(false);
+  const [codeUrl, setCodeUrl] = useState("");
+  const [captchaOnOff, setCaptchaOnOff] = useState(false);
   const [username,setUsername]=useState("admin");
   const [password,setPassword]=useState("admin123");
   const [rememberMe,setRrememberMe]=useState(false);
-  const [code,setCode]=useState("");
-  const [uuid,setUuid]=useState("");
+  // const [code,setCode]=useState("");
+  const [uuid, setUuid] = useState("");
   const goNewPage = useNavigate();
 
   const onFinish = (values: { username: string, password: string, code: string | number, uuid: string }) => {
-    axios.post('/api/auth/login', { username: values.username, password: values.password, code: values.code, uuid: uuid }).then((res) => {
-      console.log(props)
+    login({ username: values.username, password: values.password, code: values.code, uuid: uuid }).then((res) => {
       goNewPage('/about')
     })
   };
@@ -41,21 +35,34 @@ const Login: FunctionComponent<Props> = (props) => {
     console.log('Failed:', errorInfo);
   };
   const getCode = () => {
-    // axios.get('/api/code')
-    getCodeImg().then((response: { data: { captchaOnOff: boolean, uuid: string, img: string } }) => {
-        let c = response.data;
-            setUuid(c.uuid);
-            setCaptchaOnOff(c.captchaOnOff?true : c.captchaOnOff);
-            setCodeUrl("data:image/gif;base64," + c.img);
-      })
+    getCodeImg().then((response: ExpectedResponse) => {
+      setUuid(response.uuid);
+      setCaptchaOnOff(response.captchaOnOff ? true : response.captchaOnOff);
+      setCodeUrl("data:image/gif;base64," + response.img);
+    })
       .catch(error => {
         console.error(error);
       });
   }
 
-  useEffect(()=>{
+  const getCookie=()=>{
+      const cookieUsername = Cookies.get("username");
+      const cookiePassword = Cookies.get("password");
+      const cookieRememberMe:boolean = Cookies.get('rememberMe');
+      // this.loginForm = {
+      //   username: username === undefined ? this.loginForm.username : username,
+      //   password: password === undefined ? this.loginForm.password : decrypt(password),
+      //   rememberMe: rememberMe === undefined ? false : Boolean(rememberMe)
+      // };
+      setUsername(cookieUsername=== undefined ? username : cookieUsername)
+      setPassword(cookiePassword=== undefined ? password : cookiePassword)
+      setRrememberMe((cookieRememberMe==false)? rememberMe : cookieRememberMe)
+  }
+
+  useEffect(() => {
     getCode();
-  },[])
+    getCookie();
+  }, [])
 
   return (<div className='login'>
     <Form

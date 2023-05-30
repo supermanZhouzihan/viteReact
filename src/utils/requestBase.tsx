@@ -2,6 +2,7 @@ import axios from 'axios'
 
 import React from 'react';
 import { message,Modal } from 'antd';
+import NProgress from "@/components/Nprogress/nprogress";
 import { ExclamationCircleFilled } from '@ant-design/icons';
 import { showFullScreenLoading, tryHideFullScreenLoading } from "@/utils/serviceLoading";
 
@@ -28,6 +29,7 @@ const { confirm } = Modal;
  */
 // let loading:boolean
 export default function (env:any) {
+  console.log('env',env)
   axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
   // 创建axios实例
   var service = axios.create({
@@ -42,7 +44,10 @@ export default function (env:any) {
    * @see 规则参考： https://www.yuque.com/zxbowm/rog32y/devgo6
    */
   service.interceptors.request.use(config => {
+    console.log('config',config)
+    NProgress.start();
     for (let key in config.data) {
+      
       // 排除以下key 为空的时候删除key
       if (config.data[key] === '' || config.data[key] === null || config.data[key] === undefined) {
         if (key !== 'logo' && key !== 'image' && key !== 'img' && key !== 'belongCompany' && key !== 'belongEnterprise' && key !== 'deliveryTime' && key !== 'location_no' && key !== 'subsidiary_unit' && key !== 'attr1' && key !== 'intro'&&key!=='forbidRegionsType'&&key!=='mailType'&&key!=='noticeEndTime'&&key!=='noticeStartTime') {
@@ -96,6 +101,7 @@ export default function (env:any) {
       const httpStatus = res.status;
       if (httpStatus != 200) {
         message.error(res.statusText);
+        NProgress.done();
         return Promise.reject(new Error(res.statusText));
       }
 
@@ -107,6 +113,7 @@ export default function (env:any) {
       // 成功，无异常
       if (code == 0) {
         tryHideFullScreenLoadingFunc();
+        NProgress.done();
         return res.data;
       }
       // 未登录
@@ -135,9 +142,22 @@ export default function (env:any) {
         //   },
         // });
 
+        confirm({
+          title: "系统提示",
+          icon: <ExclamationCircleFilled />,
+          content: "登录状态已过期，您可以继续留在该页面，或者重新登录",
+          okText: "确认",
+          cancelText: "取消",
+          onOk: () => {
+            message.success("退出登录成功！");
+            // navigate("/login");
+          }
+        });
+
 
 
         tryHideFullScreenLoadingFunc();
+        NProgress.done();
         return Promise.reject(new Error(msg));
       } else if (code == 200) { //控制下载文件
         tryHideFullScreenLoadingFunc();
@@ -147,30 +167,34 @@ export default function (env:any) {
           });
           // return Promise.reject(new Error(response))
         }
+        NProgress.done();
         return res;
       }
       // 通用的警告
       else if (code == 201) {
         tryHideFullScreenLoadingFunc();
         message.error(msg);
+        NProgress.done();
         return Promise.reject(new Error(msg))
       }
       tryHideFullScreenLoadingFunc();
       // 其它异常
       // Notification.error({ title: msg });
+      NProgress.done();
       message.error(msg);
       return Promise.reject(new Error(msg));
     },
     error => {
+      console.log('error',error)
       let {
-        msg
+        message
       } = error;
-      if (msg == "Network Error") {
-        msg = "后端接口连接异常";
-      } else if (msg.includes("timeout")) {
-        msg = "系统接口请求超时";
-      } else if (msg.includes("Request failed with status code")) {
-        msg = "系统接口" + msg.substr(msg.length - 3) + "异常";
+      if (message == "Network Error") {
+        message = "后端接口连接异常";
+      } else if (message.includes("timeout")) {
+        message = "系统接口请求超时";
+      } else if (message.includes("Request failed with status code")) {
+        message = "系统接口" + message.substr(message.length - 3) + "异常";
       }
       tryHideFullScreenLoadingFunc();
       // Message({
@@ -178,7 +202,8 @@ export default function (env:any) {
       //   type: 'error',
       //   duration: 5 * 1000
       // })
-      message.error(msg);
+      message.error(message);
+      NProgress.done();
       return Promise.reject(error)
     });
 
@@ -267,7 +292,6 @@ export default function (env:any) {
       };
     })
   }
-
 
   return {
     service,
