@@ -4,6 +4,8 @@ import { FunctionComponent, useEffect, useState } from "react";
 import { Button, Checkbox, Form, Input } from 'antd';
 import { getCodeImg, login } from "@/api/index"
 import { useNavigate } from 'react-router-dom';
+import { encrypt } from '@/utils/jsencrypt'
+import {setToken,setExpiresIn} from "@/utils/auth"
 import Cookies from "js-cookie";
 import './index.scss';
 interface Props {
@@ -25,8 +27,20 @@ const Login: FunctionComponent<Props> = (props) => {
   const [uuid, setUuid] = useState("");
   const goNewPage = useNavigate();
 
-  const onFinish = (values: { username: string, password: string, code: string | number, uuid: string }) => {
+  const onFinish = (values: { username: string, password: string, code: string | number, uuid: string ,rememberMe:boolean }) => {
+    if (values.rememberMe) {
+      let remerberVal=JSON.stringify(values.rememberMe) 
+      Cookies.set("username", values.username, { expires: 30 });
+      Cookies.set("password", encrypt(password), { expires: 30 });
+      Cookies.set('rememberMe', remerberVal, { expires: 30 });
+    } else {
+      Cookies.remove("username");
+      Cookies.remove("password");
+      Cookies.remove('rememberMe');
+    }
     login({ username: values.username, password: values.password, code: values.code, uuid: uuid }).then((res) => {
+      setToken(res.data.access_token)
+      setExpiresIn(res.data.expires_in)
       goNewPage('/about')
     })
   };
@@ -68,7 +82,7 @@ const Login: FunctionComponent<Props> = (props) => {
     <Form
       name="basic"
       style={{ maxWidth: 600 }}
-      initialValues={{ remember: true }}
+      initialValues={{ rememberMe: true }}
       onFinish={onFinish}
       onFinishFailed={onFinishFailed}
       autoComplete="off"
@@ -103,7 +117,7 @@ const Login: FunctionComponent<Props> = (props) => {
 
       </Form.Item>
 
-      <Form.Item name="remember" valuePropName="checked">
+      <Form.Item name="rememberMe" valuePropName="checked">
         <Checkbox>记住密码</Checkbox>
       </Form.Item>
 

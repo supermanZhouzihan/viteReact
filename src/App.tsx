@@ -4,10 +4,12 @@ import Test1 from './components/Test1';
 // import { Button } from 'antd';
 import {Outlet,Link,useRoutes} from "react-router-dom"
 import router from "./routes"
+import AuthRouter from "@/routes/authRouter"
 function App() {
   const [count, setCount] = useState(0)
   const baseRouter= useRoutes(router)//hook形式
   return (
+    
     <div className="App">
       {/* <Test></Test>
       <Test1 />
